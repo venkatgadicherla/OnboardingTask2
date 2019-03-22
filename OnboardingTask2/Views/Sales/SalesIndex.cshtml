@@ -1,0 +1,262 @@
+﻿
+@{
+    ViewBag.Title = "SalesDetails";
+}
+
+<link href="~/Content/Site.css" rel="stylesheet" />
+<script src="~/Scripts/jquery-3.3.1.js"></script>
+<script src="~/Scripts/jquery.validate.js"></script>
+<script src="~/Scripts/jquery.validate.unobtrusive.js"></script>
+<script>
+    function AddNewSales(SalesID) {
+        $("#salesId").val(0);
+        $("#salesModalHeader").html("Add New Sale")
+        $("#selectProductId").select[0];
+        $("#selectCustomerId").select[0];
+        $("#selectStoreId").select[0];
+        var now = new Date();
+        var day = ("0" + now.getDate()).slice(-2);
+        var month = ("0" + (now.getMonth() + 1)).slice(-2);
+        var today = now.getFullYear() + "-" + (month) + "-" + (day);
+        $("#selectDateSale").val(today);
+        $("#newSalesModal").modal();
+    }
+    function EditSales(SalesId) {
+        
+        var url = "/Sales/GetSaleById?SalesId=" + SalesId;
+        $("#salesId").val(SalesId);
+        $("#salesModalHeader").html("Update Sale");
+        $("#newSalesModal").modal();
+      
+        
+        $.ajax({
+            type: "GET",
+            url: url,
+            success: function (data) {
+               
+                    var obj = JSON.parse(data);
+                    $("#selectProductId").val(obj.ProductId);
+                    $("#selectProductId").change();
+                    $("#selectCustomerId").val(obj.CustomerId);
+                    $("#selectCustomerId").change();
+                    $("#selectStoreId").val(obj.StoreId);
+                    $("#selectCustomerId").change();
+                    $("#selectDateSale").val(obj.Date.split('T')[0]);
+                 
+                }
+             
+              
+
+            
+            
+            
+            })
+
+       
+
+    }
+    function DeleteSales(SalesId) {
+        $("#deleteSaleId").val (SalesId);
+        $("#deleteSaleModal").modal();
+    }
+</script>
+<div class="container" style="margin-top:3%">
+    <a href="#" class="btn btn-info" onclick='AddNewSales(0)'>Add New Sales</a>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Customer </th>
+                <th>Store </th>
+                <th>Date</th>
+                <th>Action(Edit)</th>
+                <th>Action(Delete)</th>
+            </tr>
+        </thead>
+        <tbody id="SetSalesList">
+            <tr id="LoadingStatus" style="color:red"></tr>
+        </tbody>
+
+    </table>
+</div>
+<script>
+
+   //The folowing method is used to display the sales data in page
+
+    $.get("/Sales/GetSalesList", null, DataBind);
+    function DataBind(SalesList) {
+        //This method is used to display the products
+
+        console.log(SalesList);
+        var Data;
+        for (var i = 0; i < SalesList.length; i++) {
+
+            debugger;
+            Data += "<tr class='row_'>" +
+                "<td>" + SalesList[i].ProductName + "</td>" +
+                "<td>" + SalesList[i].CustomerName + "</td>" +
+                "<td>" + SalesList[i].StoreName + "</td>" +
+                "<td>" + SalesList[i].Date + "</td>" +
+                "<td>" + "<a href='#' class='btn btn-warning'  ><span class='glyphicon glyphicon-edit' onclick='EditSales(" + SalesList[i].Id + ")'></span></a>" + "</td>" +
+                "<td>" + "<a href='#' class='btn btn-danger' ><span class='glyphicon glyphicon-trash' onclick='DeleteSales(" + SalesList[i].Id + ")'></span></a>" + "</td>" +
+                "</tr>";
+
+               
+        }
+        //console.log(Data);
+        $("#SetSalesList").html(Data);
+    }
+
+        $.get("/Sales/GetProductList", null, ProductListBind);
+
+    // The follwing function is used to genereate the product list which is used to populate the Select box 
+    //.This select box is used in the new or edit modal to add new sales order or edit the sales list
+        function ProductListBind(ProductList) {
+            var selectProductList = $("#selectProductId")[0];
+
+            for (var i = 0; i < ProductList.length; i++) {
+                  selectProductList.add(new Option(ProductList[i].Name, ProductList[i].Id));
+            }
+        }
+
+         $.get("/Sales/GetCustomerList", null, CustomerListBind);
+        function CustomerListBind(CustomerList) {
+
+            var selectCustomerList = $("#selectCustomerId")[0];
+
+            for (var i = 0; i < CustomerList.length; i++) {
+                selectCustomerList.add(new Option(CustomerList[i].Name, CustomerList[i].Id));
+            }
+        }
+         $.get("/Sales/GetStoreList", null, StoreListBind);
+                function StoreListBind(StoreList) {
+
+                    var selectStoreList = $("#selectStoreId")[0];
+
+                    for (var i = 0; i <StoreList.length; i++) {
+                        selectStoreList.add(new Option(StoreList[i].Name, StoreList[i].Id));
+                    }
+            
+        }
+
+    
+    
+</script>
+<div class="modal fade" id="newSalesModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <a href="#" class="close" data-dismiss="modal">&times;:</a>
+                <h4 id="salesModalHeader"></h4>
+            </div>
+            <div class="modal-body">
+                <form id="newSalesForm">
+                    <fieldset>
+
+                        <input type="hidden" id="salesId" />
+                        <div class="form-group">
+                            <label id="lblProductId">Select Product</label>
+                            <select id="selectProductId" class="form-control"></select>
+                        </div>
+                        <div class="form-group">
+                            <label id="lblCustomerId">Select Customer</label>
+                            <select id="selectCustomerId" class="form-control"></select>
+                        </div>
+                        <div class="form-group">
+                            <label id="lblStoreId">Select Store</label>
+                            <select id="selectStoreId" class="form-control"></select>
+                        </div>
+                        <div class="form-group">
+                            <label id="lblDate">Select Date</label>
+                            <input type="date" id="selectDateSale" class="form-control" min="2018-10-01" />
+                        </div>
+                       
+                    </fieldset>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <a href="#" class="btn btn-default" data-dismiss="modal">Cancel</a>
+                <input type="reset" value="Submit" class="btn btn-success" id="btnSubmit" />
+
+            </div>
+
+        </div>
+    </div>
+
+</div>
+<div class="modal fade" id="deleteSaleModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <a href="#" class="close" data-dismiss="modal">&times;</a>
+                <h4 id="deleteModalHeader">Delete Sale</h4>
+            </div>
+
+            <div class="modal-body">
+                <form id="deleteSaleForm">
+                    <fieldset id="deleteFormData">
+                        <input type="hidden" id="deleteSaleId" />
+                        <h3>  Are you sure do you want to delete the Customer</h3>
+                    </fieldset>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <a href="#" class="btn btn-default" data-dismiss="modal">Cancel</a>
+                <input type="reset" value="Delete" class="btn btn-danger" id="btnDelete" />
+
+            </div>
+        </div>
+    </div> 
+ </div>
+<script>
+    $("#btnSubmit").click(function () {
+        //This method is used to submit the modal data to the controller 
+        //to save or create a new customer
+
+        var Id = $("#salesId").val();
+        var productId = $("#selectProductId").val();
+        var customerId = $("#selectCustomerId").val();
+        var storeId = $("#selectStoreId").val();
+        var saleDate = $("#selectDateSale").val();
+
+        $.ajax({
+            type: "POST",
+            url: "/Sales/SaveSale?Id=" + Id + "&ProductId=" + productId + name + "&CustomerId=" + customerId + "&StoreId=" + storeId + "&SaleDate=" + saleDate,
+
+            success: function () {
+                alert("Sale details Saved");
+                $("#loaderDiv").hide();
+                $("#newSalesModal").modal("hide");
+                window.location.href = "/Sales/SalesIndex";
+
+            },
+            failure: function () {
+                alert("Try again");
+            }
+
+        })
+    })
+    $("#btnDelete").click(function () {
+        var Id = $("#deleteSaleId").val();
+        alert(Id);
+        $.ajax({
+            type: "POST",
+            url: "/Sales/DeleteSale?Id=" + Id,
+
+            success: function () {
+                alert("Sale deleted");
+                $("#loaderDiv").hide();
+                $("#newSalesModal").modal("hide");
+                window.location.href = "/Sales/SalesIndex";
+
+            },
+            failure: function () {
+                alert("Try again");
+            }
+
+        })
+    } )
+    
+</script>
+
+

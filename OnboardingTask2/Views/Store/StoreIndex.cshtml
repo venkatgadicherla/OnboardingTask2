@@ -1,0 +1,243 @@
+﻿
+@{
+    ViewBag.Title = "Store Details";
+}
+
+<link href="~/Content/Site.css" rel="stylesheet" />
+<script src="~/Scripts/jquery-3.3.1.js"></script>
+<script src="~/Scripts/jquery.validate.js"></script>
+<script src="~/Scripts/jquery.validate.unobtrusive.js"></script>
+<div class="container" style="margin-top:3%">
+    <a href="#" class="btn btn-info" onclick=' AddNewStore(0)'>Add New Store</a>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Store Name</th>
+                <th>Address</th>
+                <th>Action(Edit)</th>
+                <th>Action(Delete)</th>
+            </tr>
+        </thead>
+        <tbody id="SetStoreList">
+            <tr id="LoadingStatus" style="color:red"></tr>
+        </tbody>
+
+    </table>
+</div>
+<script>
+    function AddNewStore(StoreId) {
+
+        if (StoreId == 0) {
+            $("#ModalTitle").html("Add new Store");
+            $("#storeId").val(0);
+            $("#storeName").val("");
+            $("#storeAddress").val("");
+            $("#newStoreModal").modal();
+        }
+
+
+    }
+    function DeleteStore(StoreId) {
+
+        $("#delStoreId").val(StoreId);
+        $("#deleteModal").modal();
+
+
+
+    }
+    function EditStore(StoreId) {
+        //This method is used to display the modal to edit the products
+        var url = "/Store/GetStoreById?StoreId=" + StoreId;
+        $("#ModalTitle").html("Update Store");
+        $("#newStoreModal").modal();
+        $.ajax({
+            type: "GET",
+            url: url,
+            success: function (data) {
+                var obj = JSON.parse(data);
+                $("#storeId").val(obj.Id);
+                $("#storeName").val(obj.Name);
+                $("#storeAddress").val(obj.Address);
+
+            }
+        })
+    }
+</script>
+<script>
+
+    
+
+    $.get("/Store/GetStoreList", null, DataBind);
+    function DataBind(StoreList) {
+        //This method is used to display the products
+
+        var Data;
+        for (var i = 0; i < StoreList.length; i++) {
+            debugger;
+            Data += "<tr class='row_'>" +
+                "<td>" + StoreList[i].Name + "</td>" +
+                "<td>" + StoreList[i].Address + "</td>" +
+                "<td>" + "<a href='#' class='btn btn-warning' onclick='' ><span class='glyphicon glyphicon-edit' onclick='EditStore(" + StoreList[i].Id + ")'></span></a>" + "</td>" +
+                "<td>" + "<a href='#' class='btn btn-danger' ><span class='glyphicon glyphicon-trash' onclick='DeleteStore(" + StoreList[i].Id + ")'></span></a>" + "</td>" +
+                "</tr>";
+
+
+        }
+        //console.log(Data);
+        $("#SetStoreList").html(Data);
+
+    }
+</script>
+<div class="modal fade" id="newStoreModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <a href="#" class="close" data-dismiss="modal">&times;</a>
+                <h4 id="ModalTitle"></h4>
+            </div>
+            <div class="modal-body">
+
+                <form id="myForm">
+                    <fieldset id="SubmitForm">
+                        
+                        <input type="hidden" id="storeId" class="form-control" />
+                        <table class="table-condensed">
+                            <tr>
+                                <td><h5>Store Name</h5></td>
+                                <td>
+                                    <div class="form-group">
+
+                                        <input type="text" id="storeName" class="form-control" required>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><h5>Store Address </h5></td>
+                                <td>
+
+                                    <div class="form-group">
+                                        <input type="text" id="storeAddress" class="form-control" required />
+
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </fieldset>
+
+
+                </form>
+
+                <div style="text-align:center;display:none" id="loaderDiv">
+                    <img src="~/Content/InternetSlowdown_Day.gif" width="150" /> @* //put any image in content folder*@
+                </div>
+
+
+            </div>
+            <div class="modal-footer">
+                <a href="#" class="btn btn-default" data-dismiss="modal">Cancel</a>
+                <input type="reset" value="Submit" class="btn btn-success" id="btnSubmit" />
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+<div class="modal fade" id="deleteModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <a href="#" class="close" data-dismiss="modal">&times;</a>
+                <h4 id="deleteModalTitle">Delete Product</h4>
+
+            </div>
+            <div class="modal-body">
+
+                <form id="deleteForm">
+                    <fieldset id="deleteFormData">
+
+
+                        <input type="hidden" id="delStoreId" />
+                        <div class="modal-body"></div>   Are you sure do you want to delete the Product?
+
+                    </fieldset>
+
+
+                </form>
+
+                <div style="text-align:center;display:none" id="loaderDiv">
+                    <img src="~/Content/InternetSlowdown_Day.gif" width="150" /> @* //put any image in content folder*@
+                </div>
+
+
+            </div>
+            <div class="modal-footer">
+                <a href="#" class="btn btn-default" data-dismiss="modal">Cancel</a>
+                <input type="reset" value="Delete" class="btn btn-danger" id="btnDelete" />
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+    $("#btnSubmit").click(function () {
+        //This method is used to submit the modal data to the controller to save or create a new product
+
+
+
+        var id = $("#storeId").val();
+        var name = $("#storeName").val();
+        var address = $("#storeAddress").val();
+
+        alert(id + name + address);
+        $.ajax({
+            type: "POST",
+            url: "/Store/SaveStore?Id=" + id + "&Name=" + name + "&Address=" + address,
+
+            success: function () {
+                alert("Store Saved");
+                $("#loaderDiv").hide();
+                $("#newStoreModal").modal("hide");
+                window.location.href = "/Store/StoreIndex";
+
+            },
+            failure: function () {
+                alert("Try again");
+            }
+
+        })
+    })
+    $("#btnDelete").click(function () {
+        //This method is used to submit the modal data to the controller to delete a new product
+
+        var id = $("#delStoreId").val();
+        alert(id);
+
+
+        $.ajax({
+            type: "POST",
+            url: "/Store/DeleteStore?StoreId=" + id,
+
+            success: function () {
+                alert("Store Deleted");
+                $("#loaderDiv").hide();
+                $("#deleteModal").modal("hide");
+                window.location.href = "/Store/StoreIndex";
+
+            },
+            failure: function () {
+                alert("Try again");
+            }
+
+        })
+    })
+</script>
+
